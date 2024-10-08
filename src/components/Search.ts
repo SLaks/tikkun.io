@@ -1,5 +1,5 @@
-import utils from './utils'
-import SelectList, { setSelected, getSelected } from './SelectList'
+import utils from './utils.ts'
+import SelectList, { setSelected, getSelected } from './SelectList.ts'
 import { EventEmitter } from '../event-emitter'
 
 const { htmlToElement: html, whenKey, purgeNode } = utils
@@ -34,7 +34,7 @@ const Search = ({
     'keydown',
     whenKey('Enter', () => {
       emitter.emit('selection', getSelected(list))
-    })
+    }),
   )
 
   const onSelect = (item: HTMLElement) => emitter.emit('selection', item)
@@ -56,8 +56,8 @@ const Search = ({
       whenKey(key, (e) => {
         e.preventDefault()
         setSelected(list, adjustment)
-      })
-    )
+      }),
+    ),
   )
 
   const searchInput = self.querySelector<HTMLInputElement>('.search-input')

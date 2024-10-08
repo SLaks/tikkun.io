@@ -1,19 +1,25 @@
-import { defaultRef, resolveToValidRef } from './location'
+import { defaultRef, resolveToValidRef } from './location.ts'
 import parshiyot from './data/parshiyot.json'
 import holydays from './data/holydays.json'
-import { Holyday, Ref, RefWithScroll } from './ref'
+import { Holyday, Ref, RefWithScroll } from './ref.ts'
+
+// Declare this class to avoid TypeScript compiler errors when running in Node.js.
+declare class URL {
+  hash: string
+  constructor(url: string)
+}
 
 const isURL = (url: string) => {
   try {
     new URL(url)
-  } catch (e) {
+  } catch {
     return false
   }
 
   return true
 }
 
-const hashOf = (url: string) => {
+const hashOf = (url: string): string => {
   if (!isURL(url)) return ''
 
   return new URL(url).hash
@@ -27,14 +33,14 @@ type Router = {
     asOfDate,
   }: {
     pathParts: PathPart[]
-    asOfDate: string
+    asOfDate?: string
   }) => Promise<RefWithScroll>
 }
 
 const RefRouter: Router = {
   refFromPathParts: async ({ pathParts }) => {
     if (!pathParts || !pathParts[0].length) return defaultRef()
-    const locationMatch = pathParts[0].match(/(\d+)\-(\d+)-(\d+)/)
+    const locationMatch = pathParts[0].match(/(\d+)-(\d+)-(\d+)/)
 
     if (!locationMatch) return defaultRef()
 
@@ -79,7 +85,7 @@ const HolydayRouter: Router = {
     }
 
     const isRecognizedHolyday = (
-      holyday: string
+      holyday: string,
     ): holyday is 'esther' | Holyday =>
       Object.keys(holydaysAndEsther).includes(holyday)
 
@@ -100,17 +106,18 @@ type ScheduleFetcher = {
 
 const NextRouter = {
   new: ({ scheduleFetcher }: { scheduleFetcher: ScheduleFetcher }): Router => ({
-    refFromPathParts: async ({ asOfDate }: { asOfDate: string }) => {
+    refFromPathParts: async ({ asOfDate }: { asOfDate?: string }) => {
       const schedule = await scheduleFetcher.fetch()
       const found = schedule.find(
-        ({ datetime }) => new Date(datetime) > new Date(asOfDate || Date.now())
+        ({ datetime }) => new Date(datetime) > new Date(asOfDate || Date.now()),
       )
 
       if (!found) return defaultRef()
 
       const parsha = parshiyot.find(
-        ({ he }) => found.label.split('–')[0].trim() === he
+        ({ he }) => found.label.split('–')[0].trim() === he,
       )
+      if (!parsha) return defaultRef()
 
       const { b, c, v } = parsha.ref
 
