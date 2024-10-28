@@ -7,6 +7,7 @@ import hebrewNumeralFromInteger from '../hebrew-numeral.ts'
 import { Ref } from '../ref.ts'
 import { getBookName } from './hebcal-conversions.ts'
 import { last, toISODateString } from './utils.ts'
+import parshiyot from '../data/parshiyot.json'
 
 const testSettings: UserSettings = {
   ashkenazi: true,
@@ -15,6 +16,25 @@ const testSettings: UserSettings = {
 }
 
 const generator = new LeiningGenerator(testSettings)
+
+test('matches existing parshiyot.json', (t) => {
+  for (const parsha of parshiyot) {
+    for (const label of [parsha.en, parsha.he]) {
+      // 5784 contains every פרשה.
+      const ld = generator.forParsha(label, 5784)
+      t.truthy(ld, `Missing ${label}`)
+
+      t.like(
+        {
+          ...parsha.ref,
+          scroll: 'torah',
+        },
+        ld!.leinings[0].runs[0].aliyot[0].start,
+        label
+      )
+    }
+  }
+})
 
 for (let year = 5780; year < 5790; year++) {
   test(`runs round-trip via ID for ${year}`, (t) => {

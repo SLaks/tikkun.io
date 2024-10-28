@@ -5,6 +5,7 @@ import {
   HebrewCalendar,
   Locale,
   months,
+  parshiot,
 } from '@hebcal/core'
 import {
   LeiningAliyah,
@@ -32,6 +33,19 @@ import {
 } from './utils.ts'
 import { toLeiningAliyah, toAliyahIndex } from './hebcal-conversions.ts'
 import { isSameRun } from './ref-utils.ts'
+
+function normalizeParshaName(name: string) {
+  if (name === 'שלח־לך') return 'שלח'
+  // Strip וs in the middle of a name only, so we don't equate שלח and וישלח.
+  name = name.charAt(0) + name.substring(1).replace(/ו/g, '')
+  return name.replace(/[י־ -]/g, '')
+}
+const hebrewParshaNames = new Map(
+  parshiot.map((en) => [
+    normalizeParshaName(Locale.gettext(en, 'he-x-nonikud')),
+    en,
+  ])
+)
 
 export function isSameLeiningDate(a: LeiningDate, b: LeiningDate) {
   return arrayEquals(a.leinings, b.leinings, isSameLeiningInstance)
@@ -109,6 +123,20 @@ export class LeiningGenerator {
       start: parshaFinder.find('Bereshit')!,
       end,
     })
+  }
+
+  forParsha(name: string, hebrewYear: number): LeiningDate | null {
+    const parshaFinder = HebrewCalendar.getSedra(
+      hebrewYear,
+      this.settings.israel
+    )
+    const date = parshaFinder.find(
+      hebrewParshaNames.get(normalizeParshaName(name)) ?? name
+    )
+    // hebcal uses Lech-Lecha.  Allow a space instead.
+    if (!date && name.includes(' '))
+      return this.forParsha(name.replace(/\s+/g, '-'), hebrewYear)
+    return date && this.createLeiningDate(date)
   }
 
   /**
