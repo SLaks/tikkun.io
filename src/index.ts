@@ -189,18 +189,6 @@ const listenForRevealGesture = (book: HTMLElement) => {
   book.addEventListener('touchcancel', endTouch)
 }
 
-const setAppHeight = () => {
-  // This prevents double-scroll bars from the inner "book" scrolling
-  // when on browsers that have browser "chrome" (like the tab bar),
-  // especially on mobile browsers
-  document.documentElement.style.setProperty(
-    '--app-height',
-    `${window.innerHeight}px`
-  )
-}
-
-document.addEventListener('resize', setAppHeight)
-
 document.addEventListener('DOMContentLoaded', async () => {
   const book = document.querySelector<HTMLElement>(
     '[data-target-id="tikkun-book"]'
@@ -286,8 +274,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     })
   )
-
-  setAppHeight()
 
   window.addEventListener('hashchange', () => {
     const newVM = parseCurrentUrl()

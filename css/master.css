@@ -19,12 +19,8 @@
   padding: 0;
 }
 
-:root {
-  height: var(--app-height, 100vh);
-}
-
 body {
-  height: 100%;
+  direction: rtl;
   background-color: var(--paper-color, white);
 }
 
@@ -88,13 +84,6 @@ ol {
 }
 
 :root {
-  /* HACK: I don't like that I have to specify the header height
-     here, but I don't know how else to use flexbox to say that
-     the header's height should fit to content, and the body's
-     height should fill the rest of the container (in this case
-     the screen), regardless of overflow */
-  --header-height: 45px;
-
   --paper-color: hsl(0, 0%, 98%);
   --page-ink-color: hsla(0, 0%, 0%, 0.8);
   --annotations-toggle-active-color: black;
@@ -127,8 +116,6 @@ ol {
   padding-top: 1em;
   padding-bottom: 5em; /* basically some scroll overflow so that when you get to the end of a Scroll, you can scroll past the annotations toggle so that it doesn't block the last few lines of text */
   font-size: 1.5em;
-  height: 100%;
-  overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch; /*https://css-tricks.com/snippets/css/momentum-scrolling-on-ios-overflow-elements/*/
   box-sizing: border-box;
