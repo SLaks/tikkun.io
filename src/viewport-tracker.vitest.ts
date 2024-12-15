@@ -50,7 +50,7 @@ beforeAll(async () => {
 beforeEach(() => {
   createRoot()
   vi.useFakeTimers()
-  tracker = new ViewportTracker(root)
+  tracker = new ViewportTracker()
   tracker.on(
     'viewport-updated',
     (eventHandler = vi.fn((r) => {
@@ -122,8 +122,8 @@ test('only reports fully-visible lines', async () => {
 
 async function scrollRootBy(deltaY: number) {
   await vi.advanceTimersByTimeAsync(600) // Wait for the throttle
-  root.scrollBy(0, deltaY)
-  root.dispatchEvent(new Event('scroll'))
+  document.scrollingElement.scrollBy(0, deltaY)
+  document.dispatchEvent(new Event('scroll'))
 }
 
 function createRoot() {

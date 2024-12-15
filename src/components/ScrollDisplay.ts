@@ -56,14 +56,13 @@ export class ScrollDisplay {
   }
 
   private scrollTo({ element }: { element: HTMLElement }) {
-    // offsetTop is the <table>.  If we just rendered
-    // the previous page, we must add its top.
-    const relativeTop =
-      element.offsetTop + (element.offsetParent as HTMLElement).offsetTop
-    this.root.scrollTop =
-      relativeTop + element.offsetHeight / 2 - this.root.offsetHeight / 4
-    // Raise an event so that the title updates.
-    this.root.dispatchEvent(new Event('scroll'))
+    const elementTop =
+      element.getBoundingClientRect().top + document.scrollingElement.scrollTop
+
+    document.scrollingElement.scrollTop =
+      elementTop +
+      element.offsetHeight / 4 -
+      document.documentElement.clientHeight / 2
   }
 
   private generateRender(insertPosition: InsertPosition) {

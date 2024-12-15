@@ -113,35 +113,24 @@ const scrollState: { lastScrolledPosition: number; pageAtTop: HTMLElement } = {
 
 const resumeLastScrollPosition = () => {
   if (!scrollState.pageAtTop) return
-  const book = document.querySelector('.tikkun-book')
   const pageRect = scrollState.pageAtTop.getBoundingClientRect()
 
-  book.scrollTop =
+  document.scrollingElement.scrollTop =
     scrollState.pageAtTop.offsetTop +
     scrollState.lastScrolledPosition * pageRect.height
 }
 
 const rememberLastScrolledPosition = () => {
-  const book = document.querySelector('.tikkun-book')
-  const bookBoundingRect = book.getBoundingClientRect()
-
-  const topOfBookRelativeToViewport = {
-    x: bookBoundingRect.left + bookBoundingRect.width / 2,
-    y: bookBoundingRect.top,
-  }
-
   const pageAtTop = [
-    ...(document.elementsFromPoint(
-      topOfBookRelativeToViewport.x,
-      topOfBookRelativeToViewport.y
-    ) as HTMLElement[]),
+    ...(document.elementsFromPoint(0, 0) as HTMLElement[]),
   ].find((el) => el.className.includes('tikkun-page'))
 
   if (!pageAtTop) return
 
   scrollState.pageAtTop = pageAtTop
   scrollState.lastScrolledPosition =
-    (book.scrollTop - pageAtTop.offsetTop) / pageAtTop.clientHeight
+    (document.scrollingElement.scrollTop - pageAtTop.offsetTop) /
+    pageAtTop.clientHeight
 }
 
 const debounce = (callback: () => void, delay: number) => {
@@ -198,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     '[data-target-id="annotations-toggle"]'
   )!
 
-  const viewportTracker = new ViewportTracker(book)
+  const viewportTracker = new ViewportTracker()
   const topBarModel = new TopBarTracker()
   const titleEl = document.querySelector('[data-target-id="parsha-title"]')!
   viewportTracker.on('viewport-updated', (range) => {
@@ -221,7 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   })
 
   InfiniteScroller.new({
-    container: book,
     fetchPreviousContent: {
       fetch: () => display.viewModel.fetchPreviousPage(),
       render: (entry) => display.renderPrevious(entry),
@@ -232,7 +220,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     },
   }).attach()
 
-  book.addEventListener(
+  // TODO: Reuse ViewportTracker
+  document.addEventListener(
     'scroll',
     debounce(() => {
       rememberLastScrolledPosition()

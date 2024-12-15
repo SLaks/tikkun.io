@@ -14,17 +14,15 @@ interface Fetcher<T> {
 
 const InfiniteScroller = {
   new: <T>({
-    container,
     fetchPreviousContent,
     fetchNextContent,
   }: {
-    container: HTMLElement
     fetchPreviousContent: Fetcher<T>
     fetchNextContent: Fetcher<T>
   }) => ({
     attach: () =>
-      container.addEventListener('scroll', () => {
-        const scrollView = container
+      document.addEventListener('scroll', () => {
+        const scrollView = document.scrollingElement
 
         const hiddenAboveHeight = scrollView.scrollTop
         const visibleHeight = scrollView.clientHeight

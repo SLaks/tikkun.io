@@ -21,7 +21,7 @@ type ViewportTrackerEvents = {
 }
 
 export class ViewportTracker extends EventEmitter<ViewportTrackerEvents> {
-  private book: HTMLElement
+  private readonly book = document.scrollingElement
   private readonly lineTrackers: {
     first: LineViewportTracker
     center: LineViewportTracker
@@ -29,21 +29,20 @@ export class ViewportTracker extends EventEmitter<ViewportTrackerEvents> {
   }
   private readonly top: number
 
-  constructor(book: HTMLElement) {
+  constructor() {
     super()
 
-    this.book = book
     this.top =
-      book.getBoundingClientRect().y +
-      parseFloat(getComputedStyle(book).paddingTop)
+      this.book.getBoundingClientRect().y +
+      parseFloat(getComputedStyle(this.book).paddingTop)
     this.lineTrackers = {
-      first: new LineViewportTracker(ElementSearchDirection.Down, book),
-      center: new LineViewportTracker(ElementSearchDirection.Center, book),
-      last: new LineViewportTracker(ElementSearchDirection.Up, book),
+      first: new LineViewportTracker(ElementSearchDirection.Down, this.book),
+      center: new LineViewportTracker(ElementSearchDirection.Center, this.book),
+      last: new LineViewportTracker(ElementSearchDirection.Up, this.book),
     }
     this.update()
 
-    book.addEventListener(
+    document.addEventListener(
       'scroll',
       throttle(() => this.update(), 300)
     )
@@ -155,7 +154,8 @@ class LineViewportTracker {
     return current !== this.current
   }
   private maybeUpdate(targetY: number) {
-    if (this.walker.currentNode === this.root) this.resetWalker(targetY)
+    if (!(this.walker.currentNode as HTMLElement).dataset?.lineIndex)
+      this.resetWalker(targetY)
     if (!this.walker.currentNode.isConnected) this.resetWalker(targetY)
 
     if (!(this.walker.currentNode instanceof Element))
