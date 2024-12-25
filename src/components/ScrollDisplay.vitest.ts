@@ -64,9 +64,12 @@ for (const testCase of [
     const elementAtCenter = document
       .elementFromPoint(
         ...(testCase.expectedCoordinates ??
-          ([root.clientWidth / 2, root.clientHeight / 2] as const))
+          ([
+            document.documentElement.clientWidth / 2,
+            document.documentElement.clientHeight / 2,
+          ] as const))
       )
-      .closest('tr')
+      ?.closest('tr')
 
     expect(getAliyahLabel(elementAtCenter)).toBe(testCase.label)
   })
@@ -130,8 +133,8 @@ async function renderRun(runId: string) {
   return sd
 }
 
-function getAliyahLabel(lineEl: HTMLTableRowElement) {
-  return lineEl.querySelector('[data-target-id="aliyot-range"]')?.textContent
+function getAliyahLabel(lineEl: HTMLTableRowElement | null) {
+  return lineEl?.querySelector('[data-target-id="aliyot-range"]')?.textContent
 }
 
 function textFromLine(lineEl: HTMLTableRowElement) {

@@ -51,18 +51,21 @@ export class ScrollDisplay {
       // Wait for parsha picker to close (from `this.rendered`)
       // so that we become measurable.
       await new Promise(requestAnimationFrame)
-      this.scrollTo({ element: line })
+      await this.scrollTo({ element: line })
     })
   }
 
-  private scrollTo({ element }: { element: HTMLElement }) {
+  private async scrollTo({ element }: { element: HTMLElement }) {
     const elementTop =
       element.getBoundingClientRect().top + document.scrollingElement.scrollTop
 
     document.scrollingElement.scrollTop =
       elementTop +
+      // TODO: From manual measurements, the actual center of the line (a דגש) is 1/4 of the bounding box.
       element.offsetHeight / 4 -
       document.documentElement.clientHeight / 2
+    await new Promise(requestAnimationFrame)
+    document.dispatchEvent(new Event('scroll'))
   }
 
   private generateRender(insertPosition: InsertPosition) {
