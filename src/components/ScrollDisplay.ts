@@ -61,7 +61,7 @@ export class ScrollDisplay {
     const relativeTop =
       element.offsetTop + (element.offsetParent as HTMLElement).offsetTop
     this.root.scrollTop =
-      relativeTop + element.offsetHeight / 2 - this.root.offsetHeight / 2
+      relativeTop + element.offsetHeight / 2 - this.root.offsetHeight / 4
     // Raise an event so that the title updates.
     this.root.dispatchEvent(new Event('scroll'))
   }

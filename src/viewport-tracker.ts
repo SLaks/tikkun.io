@@ -38,7 +38,7 @@ export class ViewportTracker extends EventEmitter<ViewportTrackerEvents> {
       parseFloat(getComputedStyle(book).paddingTop)
     this.lineTrackers = {
       first: new LineViewportTracker(ElementSearchDirection.Down, book),
-      center: new LineViewportTracker(ElementSearchDirection.Down, book),
+      center: new LineViewportTracker(ElementSearchDirection.Center, book),
       last: new LineViewportTracker(ElementSearchDirection.Up, book),
     }
     this.update()
@@ -74,14 +74,33 @@ type KeysOfType<TObject, TType> = {
 }[keyof TObject]
 
 interface ElementSearchDirection {
+  /** The side of the line to compare the edge of the screen to. */
   coordinate: KeysOfType<DOMRect, number>
+  /**
+   * The desired sign of `(targetY - coordinate)`.
+   * Negative means the `coordinate` of the line must be _less_ than the target position.
+   * Positive means the `coordinate` of the line must be _more_ than the target position.
+   */
+  coordinateDirection: -1 | 1
   /** The direction to walk to find a line that contains an עלייה. */
   nextElement: KeysOfType<TreeWalker, () => Node | null>
 }
 
 const ElementSearchDirection = {
-  Down: { coordinate: 'top', nextElement: 'nextNode' },
-  Up: { coordinate: 'bottom', nextElement: 'previousNode' },
+  // Check that the top of the line is above the top of the screen
+  Down: { coordinate: 'top', coordinateDirection: -1, nextElement: 'nextNode' },
+  // Check that the top of the line is below the center of the screen
+  Center: {
+    coordinate: 'top',
+    coordinateDirection: +1,
+    nextElement: 'nextNode',
+  },
+  // Check that the bottom of the line is above the bottom of the screen
+  Up: {
+    coordinate: 'bottom',
+    coordinateDirection: +1,
+    nextElement: 'previousNode',
+  },
 } satisfies Record<string, ElementSearchDirection>
 
 const IterateDirection = {
@@ -147,8 +166,9 @@ class LineViewportTracker {
     while (true) {
       const bounds = this.walker.currentNode.getBoundingClientRect()
 
-      const delta = targetY - bounds[this.direction.coordinate]
-      if (Math.abs(delta) < 0.8 * this.walker.currentNode.clientHeight) break
+      let delta = targetY - bounds[this.direction.coordinate]
+      // The node's height includes trailing space; subtract that from the right side above.
+      if (this.direction.coordinate === 'bottom') delta += bounds.height / 3
 
       // On the first iteration only, if we're too far, reset the search.
       if (isFirstIteration && Math.abs(delta) > 100) {
@@ -162,6 +182,12 @@ class LineViewportTracker {
       if (iterateDir && iterateDir !== sign(delta)) break
       iterateDir = sign(delta)
       if (!iterateDir) break
+
+      if (
+        iterateDir === this.direction.coordinateDirection &&
+        Math.abs(delta) < 0.8 * this.walker.currentNode.clientHeight
+      )
+        break
 
       const prev: Element = this.walker.currentNode
       this.walker[IterateDirection[iterateDir].nextElement]()
